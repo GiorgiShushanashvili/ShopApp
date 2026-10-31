@@ -6,7 +6,7 @@ namespace Controllers;
 
 /// <summary>CRUD endpoints for composite packages.</summary>
 [ApiController]
-[Route("api/packages")]
+[Route("api/[controller]")]
 public class PackagesController(IPackageService service) : ControllerBase
 {
     [HttpGet]

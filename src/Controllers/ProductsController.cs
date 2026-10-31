@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Controllers;
 
 [ApiController]
-[Route("api/products")]
+[Route("api/[controller]")]
 public class ProductsController(IProductService service) : ControllerBase
 {
     [HttpGet]

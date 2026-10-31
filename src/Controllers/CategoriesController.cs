@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Controllers;
 
 [ApiController]
-[Route("api/categories")]
+[Route("api/[controller]")]
 public class CategoriesController(ICategoryService service) : ControllerBase
 {
     [HttpGet]
