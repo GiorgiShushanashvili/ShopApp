@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build*)",
+      "Bash(dotnet test*)",
+      "Bash(dotnet format*)"
+    ],
+    "ask": [
+      "Bash(git push*)",
+      "Bash(docker rm*)",
+      "Bash(rm -rf*)"
+    ]
+  }
+}
