@@ -43,6 +43,7 @@ public class Order
     public void Cancel()
     {
         if (Status == OrderStatus.Cancelled) throw new DomainException("Order is already cancelled.");
+        if (Status == OrderStatus.Confirmed) throw new DomainException("Confirmed orders cannot be cancelled.");
         Status = OrderStatus.Cancelled;
     }
 
