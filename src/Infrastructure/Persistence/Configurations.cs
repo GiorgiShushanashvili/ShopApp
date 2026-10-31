@@ -43,10 +43,6 @@ public class PackageConfiguration : IEntityTypeConfiguration<Package>
         b.HasKey(p => p.Id);
         b.Property(p => p.Name).IsRequired().HasMaxLength(200);
         b.Property(p => p.Price).HasPrecision(18, 2);
-        // SQLite drops DateTimeKind on read; values are always stored as UTC, so restore the kind.
-        b.Property(p => p.CreatedAt)
-            .IsRequired()
-            .HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
         b.OwnsMany(p => p.Items, ib =>
         {
