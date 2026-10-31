@@ -3,13 +3,15 @@ using Application;
 using Infrastructure;
 using Infrastructure.Persistence;
 using Controllers;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers()
-    .AddApplicationPart(typeof(ProductsController).Assembly);
+    .AddApplicationPart(typeof(ProductsController).Assembly)
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

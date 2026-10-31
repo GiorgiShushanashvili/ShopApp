@@ -20,7 +20,7 @@ public class PackageService(IPackageRepository packages, IProductRepository prod
 
     public async Task<PackageDto> CreateAsync(CreatePackageRequest r, CancellationToken ct = default)
     {
-        var items = await ValidateItems(r.Items, ct);
+        var items = await ValidateItems(r.Items, r.Price, ct);
         var package = Package.Create(r.Name, r.Price, items);
         await packages.AddAsync(package, ct);
         await uow.SaveChangesAsync(ct);
@@ -30,7 +30,7 @@ public class PackageService(IPackageRepository packages, IProductRepository prod
     public async Task<PackageDto> UpdateAsync(Guid id, UpdatePackageRequest r, CancellationToken ct = default)
     {
         var package = await Find(id, ct);
-        var items = await ValidateItems(r.Items, ct);
+        var items = await ValidateItems(r.Items, r.Price, ct);
         package.Update(r.Name, r.Price, items);
         await uow.SaveChangesAsync(ct);
         return await ToDto(package, ct);
@@ -43,8 +43,9 @@ public class PackageService(IPackageRepository packages, IProductRepository prod
         await uow.SaveChangesAsync(ct);
     }
 
-    // Ensures every referenced product exists; returns the lines in domain form.
-    private async Task<List<(Guid ProductId, int Quantity)>> ValidateItems(List<PackageItemRequest>? lines, CancellationToken ct)
+    // Ensures every referenced product exists and the package isn't priced above its items;
+    // returns the lines in domain form.
+    private async Task<List<(Guid ProductId, int Quantity)>> ValidateItems(List<PackageItemRequest>? lines, decimal price, CancellationToken ct)
     {
         if (lines is null || lines.Count == 0)
             throw new DomainException("A package must contain at least one product.");
@@ -52,6 +53,10 @@ public class PackageService(IPackageRepository packages, IProductRepository prod
         var found = await LoadProducts(lines.Select(l => l.ProductId), ct);
         var missing = lines.FirstOrDefault(l => !found.ContainsKey(l.ProductId));
         if (missing is not null) throw new NotFoundException(nameof(Product), missing.ProductId);
+
+        var itemsTotal = lines.Sum(l => found[l.ProductId].Price * l.Quantity);
+        if (price > itemsTotal)
+            throw new DomainException($"Package price ({price}) cannot exceed the total price of its items ({itemsTotal}).");
 
         return lines.Select(l => (l.ProductId, l.Quantity)).ToList();
     }
