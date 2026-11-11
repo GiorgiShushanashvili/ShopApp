@@ -11,6 +11,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         b.HasKey(p => p.Id);
         b.Property(p => p.Name).IsRequired().HasMaxLength(200);
         b.Property(p => p.Price).HasPrecision(18, 2);
+        // Optimistic concurrency: prevents lost updates (overselling) when concurrent orders decrement stock.
+        b.Property(p => p.Stock).IsConcurrencyToken();
     }
 }
 
@@ -19,7 +21,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
     public void Configure(EntityTypeBuilder<Order> b)
     {
         b.HasKey(o => o.Id);
-        b.Property(o => o.Status).HasConversion<string>().HasMaxLength(20);
+        // Optimistic concurrency: prevents two concurrent cancels from both restocking.
+        b.Property(o => o.Status).HasConversion<string>().HasMaxLength(20).IsConcurrencyToken();
         b.Ignore(o => o.Total);
 
         b.OwnsMany(o => o.Items, ib =>
