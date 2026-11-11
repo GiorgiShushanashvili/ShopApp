@@ -6,7 +6,7 @@ using Domain.Repositories;
 
 namespace Application.Services;
 
-public class ProductService(IProductRepository products, IPackageRepository packages, IUnitOfWork uow) : IProductService
+public class ProductService(IProductRepository products, IPackageRepository packages, IOrderRepository orders, IUnitOfWork uow) : IProductService
 {
     public async Task<List<ProductDto>> GetAllAsync(CancellationToken ct = default)
         => (await products.GetAllAsync(ct)).Select(p => p.ToDto()).ToList();
@@ -47,6 +47,8 @@ public class ProductService(IProductRepository products, IPackageRepository pack
         var product = await Find(id, ct);
         if (await packages.AnyContainingProductAsync(id, ct))
             throw new DomainException($"Product '{product.Name}' is part of a package and cannot be deleted.");
+        if (await orders.AnyPendingContainingProductAsync(id, ct))
+            throw new DomainException($"Product '{product.Name}' is in a pending order and cannot be deleted.");
         products.Remove(product);
         await uow.SaveChangesAsync(ct);
     }

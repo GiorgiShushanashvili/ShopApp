@@ -10,6 +10,10 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         {
             await next(ctx);
         }
+        catch (OperationCanceledException) when (ctx.RequestAborted.IsCancellationRequested)
+        {
+            // Client disconnected; nothing to report.
+        }
         catch (NotFoundException ex)
         {
             await Write(ctx, StatusCodes.Status404NotFound, ex.Message);
@@ -17,6 +21,11 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         catch (DomainException ex)
         {
             await Write(ctx, StatusCodes.Status400BadRequest, ex.Message);
+        }
+        catch (ConflictException ex)
+        {
+            logger.LogWarning(ex, "Write conflict");
+            await Write(ctx, StatusCodes.Status409Conflict, ex.Message);
         }
         catch (Exception ex)
         {
@@ -27,6 +36,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
 
     private static Task Write(HttpContext ctx, int status, string message)
     {
+        if (ctx.Response.HasStarted) return Task.CompletedTask;
         ctx.Response.StatusCode = status;
         return ctx.Response.WriteAsJsonAsync(new { error = message });
     }

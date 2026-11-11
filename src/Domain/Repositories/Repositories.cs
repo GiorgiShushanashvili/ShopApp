@@ -24,6 +24,7 @@ public interface IOrderRepository
 {
     Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<List<Order>> GetAllAsync(CancellationToken ct = default);
+    Task<bool> AnyPendingContainingProductAsync(Guid productId, CancellationToken ct = default);
     Task AddAsync(Order order, CancellationToken ct = default);
 }
 

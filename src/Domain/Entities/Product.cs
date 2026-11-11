@@ -21,6 +21,7 @@ public class Product
     public void Update(string name, decimal price, int stock)
     {
         if (string.IsNullOrWhiteSpace(name)) throw new DomainException("Product name is required.");
+        if (name.Trim().Length > 200) throw new DomainException("Product name cannot exceed 200 characters.");
         if (price <= 0) throw new DomainException("Price must be greater than zero.");
         if (stock < 0) throw new DomainException("Stock cannot be negative.");
 
